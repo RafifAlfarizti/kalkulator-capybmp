@@ -1,0 +1,1240 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalkulator CAPYBMP - Cadangan Premi Jangka Pendek</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2193b0 0%, #6dd5ed 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .nav-tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+        
+        .nav-tab {
+            flex: 1;
+            padding: 15px 20px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-tab.active {
+            background: #2193b0;
+            color: white;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .form-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            border-left: 4px solid #2193b0;
+        }
+        
+        .form-section h3 {
+            color: #2193b0;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #495057;
+        }
+        
+        input[type="text"], input[type="number"], input[type="date"], select {
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        input[type="text"]:focus, input[type="number"]:focus, input[type="date"]:focus, select:focus {
+            outline: none;
+            border-color: #2193b0;
+            box-shadow: 0 0 0 3px rgba(33, 147, 176, 0.1);
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #2193b0 0%, #6dd5ed 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px 5px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(33, 147, 176, 0.4);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .btn-calculate {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+        
+        .btn-reset {
+            background: linear-gradient(135deg, #fc4a1a 0%, #f7b733 100%);
+        }
+        
+        .btn-save {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .btn-export {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        
+        .results {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-top: 30px;
+            display: none;
+        }
+        
+        .results h3 {
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+        
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            margin-bottom: 10px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .result-item strong {
+            font-size: 1.2em;
+        }
+        
+        .result-value {
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+        
+        .final-result {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        
+        .info-box h4 {
+            color: #1565c0;
+            margin-bottom: 10px;
+        }
+        
+        .info-box p {
+            color: #0d47a1;
+            line-height: 1.6;
+        }
+        
+        .success-message {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            display: none;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .data-table th {
+            background: #2193b0;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        .data-table td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .data-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        .data-table tr:hover {
+            background: #e3f2fd;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            text-align: center;
+            border-left: 4px solid #2193b0;
+        }
+        
+        .stat-card h4 {
+            color: #2193b0;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+        
+        .stat-card .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .stat-card .stat-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .nav-tabs {
+                flex-direction: column;
+            }
+            
+            .data-table {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏦 Kalkulator CAPYBMP</h1>
+            <p>Cadangan Atas Premi Yang Belum Merupakan Pendapatan - Sesuai Aturan OJK</p>
+        </div>
+        
+        <div class="content">
+            <div class="nav-tabs">
+                <button class="nav-tab active" onclick="switchTab('calculator')">🧮 Kalkulator</button>
+                <button class="nav-tab" onclick="switchTab('history')">📊 Riwayat Data</button>
+                <button class="nav-tab" onclick="switchTab('summary')">📈 Ringkasan</button>
+            </div>
+            
+            <!-- Calculator Tab -->
+            <div id="calculator" class="tab-content active">
+                <div class="info-box">
+                    <h4>📋 Informasi Perhitungan</h4>
+                    <p>CAPYBMP dihitung berdasarkan proporsi premi bruto secara harian untuk masa asuransi yang belum dijalani. Data akan otomatis tersimpan di memori browser Anda selama sesi ini.</p>
+                </div>
+
+                <div class="success-message" id="successMessage">
+                    ✅ Data berhasil disimpan!
+                </div>
+                
+                <form id="capybmpForm">
+                    <div class="form-section">
+                        <h3>📊 Data Polis</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="policyNo">Nomor Polis</label>
+                                <input type="text" id="policyNo" placeholder="Masukkan nomor polis" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="inception">Tanggal Mulai Polis</label>
+                                <input type="date" id="inception" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="expiry">Tanggal Berakhir Polis</label>
+                                <input type="date" id="expiry" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="calculateDate">Tanggal Perhitungan</label>
+                                <input type="date" id="calculateDate" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h3>💰 Data Premi dan Komisi</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="grossPremium">Premi Bruto (IDR)</label>
+                                <input type="number" id="grossPremium" step="0.01" placeholder="0.00" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="cobClass">Kelas Bisnis (COB)</label>
+                                <select id="cobClass" required>
+                                    <option value="">Pilih Kelas Bisnis</option>
+                                    <option value="motor">Kendaraan Bermotor (Max 25%)</option>
+                                    <option value="property">Properti (Max 15%)</option>
+                                    <option value="other">Lainnya (Berdasarkan Pengalaman)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="actualCommission">Komisi Aktual yang Dibayar (%)</label>
+                                <input type="number" id="actualCommission" step="0.01" placeholder="0.00" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="customCommissionRate" style="display:none;">Tingkat Komisi Kustom (%)</label>
+                                <input type="number" id="customCommissionRate" step="0.01" placeholder="0.00" style="display:none;">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h3>📈 Data untuk CARYBD (Opsional)</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="claimRatio1">Rasio Klaim Tahun ke-1 (%)</label>
+                                <input type="number" id="claimRatio1" step="0.01" placeholder="0.00">
+                            </div>
+                            <div class="form-group">
+                                <label for="claimRatio2">Rasio Klaim Tahun ke-2 (%)</label>
+                                <input type="number" id="claimRatio2" step="0.01" placeholder="0.00">
+                            </div>
+                            <div class="form-group">
+                                <label for="claimRatio3">Rasio Klaim Tahun ke-3 (%)</label>
+                                <input type="number" id="claimRatio3" step="0.01" placeholder="0.00">
+                            </div>
+                            <div class="form-group">
+                                <label for="returnPremium">Pengembalian Premi yang Dijanjikan (IDR)</label>
+                                <input type="number" id="returnPremium" step="0.01" placeholder="0.00">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 30px;">
+                        <button type="button" class="btn btn-calculate" onclick="calculateCAPYBMP()">🧮 Hitung CAPYBMP</button>
+                        <button type="button" class="btn btn-save" onclick="saveData()">💾 Simpan Data</button>
+                        <button type="button" class="btn btn-reset" onclick="resetForm()">🔄 Reset Form</button>
+                        <button type="button" class="btn btn-export" onclick="exportToExcel()">📊 Export Excel</button>
+                    </div>
+                </form>
+                
+                <div id="results" class="results">
+                    <h3>📊 Hasil Perhitungan CAPYBMP</h3>
+                    <div id="resultsContent"></div>
+                </div>
+            </div>
+            
+            <!-- History Tab -->
+            <div id="history" class="tab-content">
+                <div class="form-section">
+                    <h3>📊 Riwayat Perhitungan</h3>
+                    <button type="button" class="btn btn-export" onclick="exportHistoryToExcel()">📊 Export Riwayat ke Excel</button>
+                    <button type="button" class="btn btn-reset" onclick="clearHistory()">🗑️ Hapus Riwayat</button>
+                </div>
+                
+                <div id="historyTable"></div>
+            </div>
+            
+            <!-- Summary Tab -->
+            <div id="summary" class="tab-content">
+                <div class="stats-grid" id="summaryStats"></div>
+                <div id="summaryTable"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize data storage
+        let calculationHistory = [];
+        
+        // Set default date to today
+        document.getElementById('calculateDate').valueAsDate = new Date();
+        
+        // Show/hide custom commission rate based on COB selection
+        document.getElementById('cobClass').addEventListener('change', function() {
+            const customFields = document.getElementById('customCommissionRate');
+            const customLabel = document.querySelector('label[for="customCommissionRate"]');
+            
+            if (this.value === 'other') {
+                customFields.style.display = 'block';
+                customLabel.style.display = 'block';
+                customFields.required = true;
+            } else {
+                customFields.style.display = 'none';
+                customLabel.style.display = 'none';
+                customFields.required = false;
+                customFields.value = '';
+            }
+        });
+        
+        // Switch tabs function
+        function switchTab(tabName) {
+            // Hide all tab contents
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(content => content.classList.remove('active'));
+            
+            // Remove active class from all tabs
+            const tabs = document.querySelectorAll('.nav-tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+            
+            // Load data for specific tabs
+            if (tabName === 'history') {
+                loadHistory();
+            } else if (tabName === 'summary') {
+                loadSummary();
+            }
+        }
+        
+        // Calculate CAPYBMP function
+        function calculateCAPYBMP() {
+            const form = document.getElementById('capybmpForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+            
+            // Get form data
+            const policyNo = document.getElementById('policyNo').value;
+            const inception = new Date(document.getElementById('inception').value);
+            const expiry = new Date(document.getElementById('expiry').value);
+            const calculateDate = new Date(document.getElementById('calculateDate').value);
+            const grossPremium = parseFloat(document.getElementById('grossPremium').value);
+            const cobClass = document.getElementById('cobClass').value;
+            const actualCommission = parseFloat(document.getElementById('actualCommission').value);
+            const customCommissionRate = parseFloat(document.getElementById('customCommissionRate').value) || 0;
+            
+            // Validate dates
+            if (calculateDate < inception) {
+                alert('Tanggal perhitungan tidak boleh sebelum tanggal mulai polis!');
+                return;
+            }
+            
+            if (calculateDate > expiry) {
+                alert('Tanggal perhitungan tidak boleh setelah tanggal berakhir polis!');
+                return;
+            }
+            
+            // Calculate periods
+            const totalDays = Math.ceil((expiry - inception) / (1000 * 60 * 60 * 24));
+            const elapsedDays = Math.ceil((calculateDate - inception) / (1000 * 60 * 60 * 24));
+            const remainingDays = totalDays - elapsedDays;
+            
+            // Get commission rate limits
+            let maxCommissionRate = 0;
+            switch (cobClass) {
+                case 'motor':
+                    maxCommissionRate = 25;
+                    break;
+                case 'property':
+                    maxCommissionRate = 15;
+                    break;
+                case 'other':
+                    maxCommissionRate = customCommissionRate;
+                    break;
+            }
+            
+            // Calculate commission deduction
+            const commissionDeduction = Math.min(actualCommission, maxCommissionRate);
+            const adjustedPremium = grossPremium * (1 - commissionDeduction / 100);
+            
+            // Calculate CAPYBMP
+            const capybmp = adjustedPremium * (remainingDays / totalDays);
+            
+            // Get optional CARYBD data
+            const claimRatio1 = parseFloat(document.getElementById('claimRatio1').value) || 0;
+            const claimRatio2 = parseFloat(document.getElementById('claimRatio2').value) || 0;
+            const claimRatio3 = parseFloat(document.getElementById('claimRatio3').value) || 0;
+            const returnPremium = parseFloat(document.getElementById('returnPremium').value) || 0;
+            
+            // Calculate average claim ratio
+            const avgClaimRatio = (claimRatio1 + claimRatio2 + claimRatio3) / 3;
+            
+            // Calculate CARYBD (simplified calculation)
+            const carybd = capybmp * (avgClaimRatio / 100) + returnPremium;
+            
+            // Display results
+            displayResults({
+                policyNo,
+                inception: inception.toLocaleDateString('id-ID'),
+                expiry: expiry.toLocaleDateString('id-ID'),
+                calculateDate: calculateDate.toLocaleDateString('id-ID'),
+                grossPremium,
+                adjustedPremium,
+                totalDays,
+                elapsedDays,
+                remainingDays,
+                commissionDeduction,
+                capybmp,
+                carybd,
+                avgClaimRatio,
+                returnPremium
+            });
+        }
+        
+        // Display results function
+        function displayResults(data) {
+            const resultsDiv = document.getElementById('results');
+            const resultsContent = document.getElementById('resultsContent');
+            
+            resultsContent.innerHTML = `
+                <div class="result-item">
+                    <strong>Nomor Polis:</strong>
+                    <span class="result-value">${data.policyNo}</span>
+                </div>
+                <div class="result-item">
+                    <strong>Periode Polis:</strong>
+                    <span class="result-value">${data.inception} - ${data.expiry}</span>
+                </div>
+                <div class="result-item">
+                    <strong>Total Hari Polis:</strong>
+                    <span class="result-value">${data.totalDays} hari</span>
+                </div>
+                <div class="result-item">
+                    <strong>Hari yang Telah Berlalu:</strong>
+                    <span class="result-value">${data.elapsedDays} hari</span>
+                </div>
+                <div class="result-item">
+                    <strong>Sisa Hari:</strong>
+                    <span class="result-value">${data.remainingDays} hari</span>
+                </div>
+                <div class="result-item">
+                    <strong>Premi Bruto:</strong>
+                    <span class="result-value">${formatCurrency(data.grossPremium)}</span>
+                </div>
+                <div class="result-item">
+                    <strong>Potongan Komisi:</strong>
+                    <span class="result-value">${data.commissionDeduction}%</span>
+                </div>
+                <div class="result-item">
+                    <strong>Premi Setelah Komisi:</strong>
+                    <span class="result-value">${formatCurrency(data.adjustedPremium)}</span>
+                </div>
+                <div class="result-item final-result">
+                    <strong>CAPYBMP:</strong>
+                    <span class="result-value">${formatCurrency(data.capybmp)}</span>
+                </div>
+                ${data.carybd > 0 ? `
+                <div class="result-item">
+                    <strong>Rata-rata Rasio Klaim:</strong>
+                    <span class="result-value">${data.avgClaimRatio.toFixed(2)}%</span>
+                </div>
+                <div class="result-item">
+                    <strong>CARYBD (Estimasi):</strong>
+                    <span class="result-value">${formatCurrency(data.carybd)}</span>
+                </div>
+                ` : ''}
+            `;
+            
+            resultsDiv.style.display = 'block';
+            resultsDiv.scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // Save data function
+        function saveData() {
+            const form = document.getElementById('capybmpForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+            
+            // Collect form data
+            const formData = {
+                timestamp: new Date().toISOString(),
+                policyNo: document.getElementById('policyNo').value,
+                inception: document.getElementById('inception').value,
+                expiry: document.getElementById('expiry').value,
+                calculateDate: document.getElementById('calculateDate').value,
+                grossPremium: parseFloat(document.getElementById('grossPremium').value),
+                cobClass: document.getElementById('cobClass').value,
+                actualCommission: parseFloat(document.getElementById('actualCommission').value),
+                customCommissionRate: parseFloat(document.getElementById('customCommissionRate').value) || 0,
+                claimRatio1: parseFloat(document.getElementById('claimRatio1').value) || 0,
+                claimRatio2: parseFloat(document.getElementById('claimRatio2').value) || 0,
+                claimRatio3: parseFloat(document.getElementById('claimRatio3').value) || 0,
+                returnPremium: parseFloat(document.getElementById('returnPremium').value) || 0
+            };
+            
+            // Add to history
+            calculationHistory.push(formData);
+            
+            // Show success message
+            const successMsg = document.getElementById('successMessage');
+            successMsg.style.display = 'block';
+            setTimeout(() => {
+                successMsg.style.display = 'none';
+            }, 3000);
+        }
+        
+        // Reset form function
+        function resetForm() {
+            document.getElementById('capybmpForm').reset();
+            document.getElementById('calculateDate').valueAsDate = new Date();
+            document.getElementById('results').style.display = 'none';
+            
+            // Hide custom commission fields
+            document.getElementById('customCommissionRate').style.display = 'none';
+            document.querySelector('label[for="customCommissionRate"]').style.display = 'none';
+        }
+        
+        // Export to Excel function
+        function exportToExcel() {
+            if (calculationHistory.length === 0) {
+                alert('Tidak ada data untuk diekspor. Silakan hitung dan simpan data terlebih dahulu.');
+                return;
+            }
+            
+            const ws = XLSX.utils.json_to_sheet(calculationHistory);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Data CAPYBMP");
+            
+            const fileName = `CAPYBMP_Data_${new Date().toISOString().split('T')[0]}.xlsx`;
+            XLSX.writeFile(wb, fileName);
+        }
+        
+        // Load history function
+        function loadHistory() {
+            const historyDiv = document.getElementById('historyTable');
+            
+            if (calculationHistory.length === 0) {
+                historyDiv.innerHTML = '<p style="text-align: center; color: #666; margin-top: 20px;">Belum ada data riwayat.</p>';
+                return;
+            }
+            
+            let tableHTML = `
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Tanggal Input</th>
+                            <th>No. Polis</th>
+                            <th>Mulai Polis</th>
+                            <th>Berakhir Polis</th>
+                            <th>Premi Bruto</th>
+                            <th>Kelas Bisnis</th>
+                            <th>Komisi (%)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            calculationHistory.forEach(data => {
+                tableHTML += `
+                    <tr>
+                        <td>${new Date(data.timestamp).toLocaleDateString('id-ID')}</td>
+                        <td>${data.policyNo}</td>
+                        <td>${new Date(data.inception).toLocaleDateString('id-ID')}</td>
+                        <td>${new Date(data.expiry).toLocaleDateString('id-ID')}</td>
+                        <td>${formatCurrency(data.grossPremium)}</td>
+                        <td>${getCOBName(data.cobClass)}</td>
+                        <td>${data.actualCommission}%</td>
+                    </tr>
+                `;
+            });
+            
+            tableHTML += '</tbody></table>';
+            historyDiv.innerHTML = tableHTML;
+        }
+        
+        // Load summary function
+        function loadSummary() {
+            const summaryStats = document.getElementById('summaryStats');
+            const summaryTable = document.getElementById('summaryTable');
+            
+            if (calculationHistory.length === 0) {
+                summaryStats.innerHTML = '<p style="text-align: center; color: #666;">Belum ada data untuk ditampilkan.</p>';
+                summaryTable.innerHTML = '';
+                return;
+            }
+            
+            // Calculate statistics
+            const totalPolicies = calculationHistory.length;
+            const totalPremium = calculationHistory.reduce((sum, data) => sum + data.grossPremium, 0);
+            const avgPremium = totalPremium / totalPolicies;
+            const avgCommission = calculationHistory.reduce((sum, data) => sum + data.actualCommission, 0) / totalPolicies;
+            
+            // Group by COB class
+            const cobStats = {};
+            calculationHistory.forEach(data => {
+                if (!cobStats[data.cobClass]) {
+                    cobStats[data.cobClass] = { count: 0, totalPremium: 0 };
+                }
+                cobStats[data.cobClass].count++;
+                cobStats[data.cobClass].totalPremium += data.grossPremium;
+            });
+            
+            // Display statistics
+            summaryStats.innerHTML = `
+                <div class="stat-card">
+                    <h4>Total Polis</h4>
+                    <div class="stat-number">${totalPolicies}</div>
+                    <div class="stat-label">Polis tercatat</div>
+                </div>
+                <div class="stat-card">
+                    <h4>Total Premi Bruto</h4>
+                    <div class="stat-number">${formatCurrencyShort(totalPremium)}</div>
+                    <div class="stat-label">Rupiah</div>
+                </div>
+                <div class="stat-card">
+                    <h4>Rata-rata Premi</h4>
+                    <div class="stat-number">${formatCurrencyShort(avgPremium)}</div>
+                    <div class="stat-label">Per polis</div>
+                </div>
+                <div class="stat-card">
+                    <h4>Rata-rata Komisi</h4>
+                    <div class="stat-number">${avgCommission.toFixed(1)}%</div>
+                    <div class="stat-label">Komisi aktual</div>
+                </div>
+            `;
+            
+            // Display COB breakdown table
+            let cobTableHTML = `
+                <div class="form-section">
+                    <h3>📊 Breakdown per Kelas Bisnis</h3>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Kelas Bisnis</th>
+                                <th>Jumlah Polis</th>
+                                <th>Total Premi</th>
+                                <th>Rata-rata Premi</th>
+                                <th>Persentase</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            Object.keys(cobStats).forEach(cob => {
+                const stats = cobStats[cob];
+                const percentage = (stats.count / totalPolicies * 100).toFixed(1);
+                const avgPremiumCOB = stats.totalPremium / stats.count;
+                
+                cobTableHTML += `
+                    <tr>
+                        <td>${getCOBName(cob)}</td>
+                        <td>${stats.count}</td>
+                        <td>${formatCurrency(stats.totalPremium)}</td>
+                        <td>${formatCurrency(avgPremiumCOB)}</td>
+                        <td>${percentage}%</td>
+                    </tr>
+                `;
+            });
+            
+            cobTableHTML += '</tbody></table></div>';
+            summaryTable.innerHTML = cobTableHTML;
+        }
+        
+        // Export history to Excel function
+        function exportHistoryToExcel() {
+            if (calculationHistory.length === 0) {
+                alert('Tidak ada data riwayat untuk diekspor.');
+                return;
+            }
+            
+            // Prepare data for export
+            const exportData = calculationHistory.map(data => ({
+                'Tanggal Input': new Date(data.timestamp).toLocaleDateString('id-ID'),
+                'Nomor Polis': data.policyNo,
+                'Tanggal Mulai': new Date(data.inception).toLocaleDateString('id-ID'),
+                'Tanggal Berakhir': new Date(data.expiry).toLocaleDateString('id-ID'),
+                'Tanggal Perhitungan': new Date(data.calculateDate).toLocaleDateString('id-ID'),
+                'Premi Bruto': data.grossPremium,
+                'Kelas Bisnis': getCOBName(data.cobClass),
+                'Komisi Aktual (%)': data.actualCommission,
+                'Komisi Kustom (%)': data.customCommissionRate,
+                'Rasio Klaim Tahun 1 (%)': data.claimRatio1,
+                'Rasio Klaim Tahun 2 (%)': data.claimRatio2,
+                'Rasio Klaim Tahun 3 (%)': data.claimRatio3,
+                'Pengembalian Premi': data.returnPremium
+            }));
+            
+            const ws = XLSX.utils.json_to_sheet(exportData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Riwayat CAPYBMP");
+            
+            const fileName = `Riwayat_CAPYBMP_${new Date().toISOString().split('T')[0]}.xlsx`;
+            XLSX.writeFile(wb, fileName);
+        }
+        
+        // Clear history function
+        function clearHistory() {
+            if (confirm('Apakah Anda yakin ingin menghapus semua data riwayat?')) {
+                calculationHistory = [];
+                loadHistory();
+                loadSummary();
+                alert('Riwayat data berhasil dihapus.');
+            }
+        }
+        
+        // Helper functions
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(amount);
+        }
+        
+        // Save data function
+        function saveData() {
+            const form = document.getElementById('capybmpForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+            
+            // Collect form data
+            const policyNo = document.getElementById('policyNo').value;
+            const inception = new Date(document.getElementById('inception').value);
+            const expiry = new Date(document.getElementById('expiry').value);
+            const calculateDate = new Date(document.getElementById('calculateDate').value);
+            const grossPremium = parseFloat(document.getElementById('grossPremium').value);
+            const cobClass = document.getElementById('cobClass').value;
+            const actualCommission = parseFloat(document.getElementById('actualCommission').value);
+            const customCommissionRate = parseFloat(document.getElementById('customCommissionRate').value) || 0;
+            const claimRatio1 = parseFloat(document.getElementById('claimRatio1').value) || 0;
+            const claimRatio2 = parseFloat(document.getElementById('claimRatio2').value) || 0;
+            const claimRatio3 = parseFloat(document.getElementById('claimRatio3').value) || 0;
+            const returnPremium = parseFloat(document.getElementById('returnPremium').value) || 0;
+            
+            // Calculate CAPYBMP and CARYBD for storage
+            const totalDays = Math.ceil((expiry - inception) / (1000 * 60 * 60 * 24));
+            const elapsedDays = Math.ceil((calculateDate - inception) / (1000 * 60 * 60 * 24));
+            const remainingDays = totalDays - elapsedDays;
+            
+            let maxCommissionRate = 0;
+            switch (cobClass) {
+                case 'motor':
+                    maxCommissionRate = 25;
+                    break;
+                case 'property':
+                    maxCommissionRate = 15;
+                    break;
+                case 'other':
+                    maxCommissionRate = customCommissionRate;
+                    break;
+            }
+            
+            const commissionDeduction = Math.min(actualCommission, maxCommissionRate);
+            const adjustedPremium = grossPremium * (1 - commissionDeduction / 100);
+            const capybmp = adjustedPremium * (remainingDays / totalDays);
+            
+            const avgClaimRatio = (claimRatio1 + claimRatio2 + claimRatio3) / 3;
+            const carybd = capybmp * (avgClaimRatio / 100) + returnPremium;
+            
+            const formData = {
+                timestamp: new Date().toISOString(),
+                policyNo: policyNo,
+                inception: document.getElementById('inception').value,
+                expiry: document.getElementById('expiry').value,
+                calculateDate: document.getElementById('calculateDate').value,
+                grossPremium: grossPremium,
+                cobClass: cobClass,
+                actualCommission: actualCommission,
+                customCommissionRate: customCommissionRate,
+                claimRatio1: claimRatio1,
+                claimRatio2: claimRatio2,
+                claimRatio3: claimRatio3,
+                returnPremium: returnPremium,
+                // Add calculated values
+                totalDays: totalDays,
+                elapsedDays: elapsedDays,
+                remainingDays: remainingDays,
+                commissionDeduction: commissionDeduction,
+                adjustedPremium: adjustedPremium,
+                capybmp: capybmp,
+                avgClaimRatio: avgClaimRatio,
+                carybd: carybd
+            };
+            
+            // Add to history
+            calculationHistory.push(formData);
+            
+            // Show success message
+            const successMsg = document.getElementById('successMessage');
+            successMsg.style.display = 'block';
+            setTimeout(() => {
+                successMsg.style.display = 'none';
+            }, 3000);
+        }
+
+
+        function formatCurrencyShort(amount) {
+            if (amount >= 1000000000) {
+                return (amount / 1000000000).toFixed(1) + 'M';
+            } else if (amount >= 1000000) {
+                return (amount / 1000000).toFixed(1) + 'Jt';
+            } else if (amount >= 1000) {
+                return (amount / 1000).toFixed(1) + 'K';
+            } else {
+                return amount.toFixed(0);
+            }
+        }
+        
+        function getCOBName(cobClass) {
+            switch (cobClass) {
+                case 'motor':
+                    return 'Kendaraan Bermotor';
+                case 'property':
+                    return 'Properti';
+                case 'other':
+                    return 'Lainnya';
+                default:
+                    return 'Tidak Diketahui';
+            }
+        }
+        
+        // Auto-calculate when form is submitted
+        document.getElementById('capybmpForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            calculateCAPYBMP();
+        });
+        
+        // Auto-save when calculate button is clicked
+        const originalCalculate = calculateCAPYBMP;
+        calculateCAPYBMP = function() {
+            originalCalculate();
+            // Auto-save after successful calculation
+            const form = document.getElementById('capybmpForm');
+            if (form.checkValidity()) {
+                saveData();
+            }
+        };
+        
+        // Load demo data on page load
+        window.addEventListener('load', function() {
+            // Add some demo data for testing
+            const demoData = [
+                {
+                    timestamp: new Date(2024, 0, 15).toISOString(),
+                    policyNo: 'POL-2024-001',
+                    inception: '2024-01-01',
+                    expiry: '2024-12-31',
+                    calculateDate: '2024-06-15',
+                    grossPremium: 50000000,
+                    cobClass: 'motor',
+                    actualCommission: 20,
+                    customCommissionRate: 0,
+                    claimRatio1: 65,
+                    claimRatio2: 70,
+                    claimRatio3: 68,
+                    returnPremium: 0
+                },
+                {
+                    timestamp: new Date(2024, 1, 20).toISOString(),
+                    policyNo: 'POL-2024-002',
+                    inception: '2024-02-01',
+                    expiry: '2025-01-31',
+                    calculateDate: '2024-06-15',
+                    grossPremium: 75000000,
+                    cobClass: 'property',
+                    actualCommission: 12,
+                    customCommissionRate: 0,
+                    claimRatio1: 45,
+                    claimRatio2: 50,
+                    claimRatio3: 48,
+                    returnPremium: 1000000
+                },
+                {
+                    timestamp: new Date(2024, 2, 10).toISOString(),
+                    policyNo: 'POL-2024-003',
+                    inception: '2024-03-01',
+                    expiry: '2025-02-28',
+                    calculateDate: '2024-06-15',
+                    grossPremium: 30000000,
+                    cobClass: 'other',
+                    actualCommission: 18,
+                    customCommissionRate: 20,
+                    claimRatio1: 55,
+                    claimRatio2: 60,
+                    claimRatio3: 58,
+                    returnPremium: 500000
+                }
+            ];
+            
+            // Only add demo data if no data exists
+            if (calculationHistory.length === 0) {
+                calculationHistory = demoData;
+            }
+        });
+        
+        // Add keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl + Enter to calculate
+            if (e.ctrlKey && e.key === 'Enter') {
+                e.preventDefault();
+                calculateCAPYBMP();
+            }
+            
+            // Ctrl + S to save
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                saveData();
+            }
+            
+            // Ctrl + R to reset (prevent default browser refresh)
+            if (e.ctrlKey && e.key === 'r') {
+                e.preventDefault();
+                resetForm();
+            }
+            
+            // Ctrl + E to export
+            if (e.ctrlKey && e.key === 'e') {
+                e.preventDefault();
+                exportToExcel();
+            }
+        });
+        
+        // Add input validation
+        document.getElementById('grossPremium').addEventListener('input', function() {
+            if (this.value < 0) {
+                this.value = 0;
+            }
+        });
+        
+        document.getElementById('actualCommission').addEventListener('input', function() {
+            if (this.value < 0) {
+                this.value = 0;
+            } else if (this.value > 100) {
+                this.value = 100;
+            }
+        });
+        
+        // Add date validation
+        document.getElementById('expiry').addEventListener('change', function() {
+            const inception = document.getElementById('inception').value;
+            if (inception && this.value <= inception) {
+                alert('Tanggal berakhir harus setelah tanggal mulai polis!');
+                this.value = '';
+            }
+        });
+        
+        document.getElementById('inception').addEventListener('change', function() {
+            const expiry = document.getElementById('expiry').value;
+            if (expiry && expiry <= this.value) {
+                document.getElementById('expiry').value = '';
+            }
+        });
+        
+        // Add tooltips for better UX
+        const tooltips = {
+            'policyNo': 'Masukkan nomor polis yang unik',
+            'inception': 'Tanggal mulai berlakunya polis',
+            'expiry': 'Tanggal berakhirnya polis',
+            'calculateDate': 'Tanggal saat perhitungan dilakukan',
+            'grossPremium': 'Premi sebelum dikurangi komisi dan biaya lainnya',
+            'cobClass': 'Pilih kelas bisnis sesuai jenis asuransi',
+            'actualCommission': 'Persentase komisi yang benar-benar dibayarkan',
+            'claimRatio1': 'Rasio klaim tahun pertama dalam persen',
+            'claimRatio2': 'Rasio klaim tahun kedua dalam persen',
+            'claimRatio3': 'Rasio klaim tahun ketiga dalam persen',
+            'returnPremium': 'Jumlah premi yang dijanjikan akan dikembalikan'
+        };
+        
+        Object.keys(tooltips).forEach(id => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.title = tooltips[id];
+            }
+        });
+        
+        // Add loading state for calculations
+        function showLoading(button) {
+            const originalText = button.innerHTML;
+            button.innerHTML = '⏳ Menghitung...';
+            button.disabled = true;
+            
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.disabled = false;
+            }, 1000);
+        }
+        
+        // Override calculate function to show loading
+        const originalCalculateFunction = calculateCAPYBMP;
+        calculateCAPYBMP = function() {
+            const button = document.querySelector('.btn-calculate');
+            showLoading(button);
+            setTimeout(originalCalculateFunction, 500);
+        };
+        
+        // Add print functionality
+        function printResults() {
+            const results = document.getElementById('results');
+            if (results.style.display === 'none') {
+                alert('Tidak ada hasil untuk dicetak. Silakan hitung terlebih dahulu.');
+                return;
+            }
+            
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html>
+                    <head>
+                        <title>Hasil Perhitungan CAPYBMP</title>
+                        <style>
+                            body { font-family: Arial, sans-serif; margin: 20px; }
+                            .header { text-align: center; margin-bottom: 30px; }
+                            .result-item { margin: 10px 0; padding: 10px; border-bottom: 1px solid #ccc; }
+                            .final-result { background: #f0f0f0; font-weight: bold; }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="header">
+                            <h1>Hasil Perhitungan CAPYBMP</h1>
+                            <p>Tanggal Cetak: ${new Date().toLocaleDateString('id-ID')}</p>
+                        </div>
+                        ${results.innerHTML}
+                    </body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.print();
+        }
+        
+        // Add print button to results
+        function addPrintButton() {
+            const results = document.getElementById('results');
+            if (!results.querySelector('.print-button')) {
+                const printButton = document.createElement('button');
+                printButton.className = 'btn print-button';
+                printButton.innerHTML = '🖨️ Cetak Hasil';
+                printButton.onclick = printResults;
+                printButton.style.marginTop = '20px';
+                results.appendChild(printButton);
+            }
+        }
+        
+        // Modify displayResults to add print button
+        const originalDisplayResults = displayResults;
+        displayResults = function(data) {
+            originalDisplayResults(data);
+            addPrintButton();
+        };
+        
+        console.log('🏦 Kalkulator CAPYBMP berhasil dimuat!');
+        console.log('📋 Keyboard shortcuts:');
+        console.log('   Ctrl+Enter: Hitung');
+        console.log('   Ctrl+S: Simpan');
+        console.log('   Ctrl+R: Reset');
+        console.log('   Ctrl+E: Export');
+    </script>
+</body>
+</html>
